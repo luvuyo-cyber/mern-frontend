@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Switch, Route, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Nav from "react-bootstrap/Nav";
@@ -10,7 +10,7 @@ import Movie from "./components/movie";
 import Login from "./components/login";
 
 function App() {
-  const [user, setUser] = React.useState(null); //declare user state variable using react hooks
+  const [user, setUser] = useState(null); //declare user state variable using react hooks
 
   async function login(user = null) {
     //default user to null
@@ -43,6 +43,23 @@ function App() {
           </Navbar.Collapse>
         </Container>
       </Navbar>
+
+      <Switch>
+        <Route exact path={["/", "movies"]} component={MoviesList}></Route>
+        <Route
+          path="/movies/:id/review"
+          render={(props) => <AddReview {...props} user={user} />}
+        ></Route>
+        <Route
+          path="/movies/:id/"
+          render={(props) => <Movie {...props} user={user} />}
+        ></Route>
+        {/* pass login function as a prop */}
+        <Route
+          path="/login"
+          render={(props) => <Login {...props} login={login} />}
+        ></Route>
+      </Switch>
     </div>
   );
 }
