@@ -50,6 +50,7 @@ function App() {
           path="/movies/:id/review"
           render={(props) => <AddReview {...props} user={user} />}
         ></Route>
+        {/* includes an id parameter for movie id */}
         <Route
           path="/movies/:id/"
           render={(props) => <Movie {...props} user={user} />}
