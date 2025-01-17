@@ -42,7 +42,7 @@ const MoviesList = (props) => {
     MovieDataService.getRatings()
       .then((response) => {
         console.log(response.data);
-        setRatings(["All Ratings"]).concat(response.data); //concat response to the ["All Ratings"] array
+        setRatings(["All Ratings"].concat(response.data)); //concat response to the ["All Ratings"] array
       })
       .catch((e) => {
         console.log(e);
