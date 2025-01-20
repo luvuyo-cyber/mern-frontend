@@ -1,70 +1,94 @@
-//component to list movies
 import React, { useState, useEffect } from "react";
 import MovieDataService from "../services/movies";
 import { Link } from "react-router-dom";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
-import Card from "react-bootstrap/Card";
 
-//receives and uses props
 const MoviesList = (props) => {
-  //create state variables
   const [movies, setMovies] = useState([]);
   const [searchTitle, setSearchTitle] = useState("");
   const [searchRating, setSearchRating] = useState("");
   const [ratings, setRatings] = useState(["All Ratings"]);
+  //ch 23
+  const [currentPage, setCurrentPage] = useState(0); //keep track of current page shown
+  const [entriesPerPage, setEntriesPerPage] = useState(0); //particular page
+  //ch 24
+  const [currentSearchMode, setCurrentSearchMode] = useState(""); //can findByTitle or by Rating
 
-  //useEffect hook tells component to perform some code after rendering
-  //in this case, retrieving movies and ratings
+  useEffect(() => {
+    setCurrentPage(0);
+    //page is changed and can be filtered according title etc.
+    // eslint-disable-next-line
+  }, [currentSearchMode]);
+  //ch 23
+
+  //retrieve next page is rendered once only
+  useEffect(() => {
+    // retrieveMovies()
+    retrieveNextPage();
+    //passing current page
+    // eslint-disable-next-line
+  }, [currentPage]);
+
+  //uses if logic to invoke functions
+  //ch 23
+  const retrieveNextPage = () => {
+    if (currentSearchMode === "findByTitle") findByTitle();
+    else if (currentSearchMode === "findByRating") findByRating();
+    else retrieveMovies();
+  };
+
   useEffect(() => {
     retrieveMovies();
     retrieveRatings();
-  }, []); //empty array makes sure that useEffect called only once when the component renders
+    //empty array used to invoke functions only once
+    // eslint-disable-next-line
+  }, []);
 
-  //calls getAll from services, which returns promise with movies retrieved from database
-  //then we set it to the movies state variable setMovies
   const retrieveMovies = () => {
-    MovieDataService.getAll()
+    //ch 23
+    setCurrentSearchMode("");
+    MovieDataService.getAll(currentPage)
       .then((response) => {
         console.log(response.data);
-        setMovies(response.data.movies);
+        setMovies(response.data.movies); // assign to movies state
+        setCurrentPage(response.data.page);
+        //ch 23
+        setEntriesPerPage(response.data.entries_per_page);
       })
       .catch((e) => {
         console.log(e);
       });
   };
 
-  //get dinstinct ratings from the database
   const retrieveRatings = () => {
     MovieDataService.getRatings()
       .then((response) => {
         console.log(response.data);
-        setRatings(["All Ratings"].concat(response.data)); //concat response to the ["All Ratings"] array
+        setRatings(["All Ratings"].concat(response.data));
       })
       .catch((e) => {
         console.log(e);
       });
   };
 
-  //called when user types into search title field
   const onChangeSearchTitle = (e) => {
-    const searchTitle = e.target.value; //take entered value
-    setSearchTitle(searchTitle); //set it to component state
+    const searchTitle = e.target.value;
+    setSearchTitle(searchTitle);
   };
 
-  //called when user types into search field
   const onChangeSearchRating = (e) => {
     const searchRating = e.target.value;
     setSearchRating(searchRating);
   };
 
-  //provides search query value entered by user to services.find()
-  //find() in turn calls the backend API
   const find = (query, by) => {
-    MovieDataService.find(query, by)
+    //ch 23
+    MovieDataService.find(query, by, currentPage) //adding currentPage argument
       .then((response) => {
         console.log(response.data);
         setMovies(response.data.movies);
@@ -73,14 +97,15 @@ const MoviesList = (props) => {
         console.log(e);
       });
   };
-
-  //is called by search button, provides title value to be searched to find()
+  // find function sypported by below two methods
   const findByTitle = () => {
-    find(searchTitle, "title");
+    //ch 24
+    setCurrentSearchMode("findByTitle");
+    find(searchTitle, "title"); // Pass the searchTitle and currentPage to the API call
   };
-
-  //called by ratings search button, provides rating value to be searched to find(), defaults to "All Ratings"
   const findByRating = () => {
+    //ch 24
+    setCurrentSearchMode("findByRating");
     if (searchRating === "All Ratings") {
       retrieveMovies();
     } else {
@@ -97,7 +122,7 @@ const MoviesList = (props) => {
               <Form.Group>
                 <Form.Control
                   type="text"
-                  placeholder="Search By Title"
+                  placeholder="Search by title"
                   value={searchTitle}
                   onChange={onChangeSearchTitle}
                 />
@@ -120,7 +145,7 @@ const MoviesList = (props) => {
             </Col>
           </Row>
         </Form>
-        {/* map out each movie in movies */}
+
         <Row>
           {movies.map((movie) => {
             return (
@@ -131,7 +156,7 @@ const MoviesList = (props) => {
                     <Card.Title>{movie.title}</Card.Title>
                     <Card.Text>Rating: {movie.rated}</Card.Text>
                     <Card.Text>{movie.plot}</Card.Text>
-                    <Link to={"/movies/" + movie.id}>View Reviews</Link>
+                    <Link to={"/movies/" + movie._id}>View Reviews</Link>
                   </Card.Body>
                 </Card>
               </Col>
@@ -139,6 +164,17 @@ const MoviesList = (props) => {
           })}
         </Row>
       </Container>
+      <br />
+      {/* ch 23 */}
+      Showing page: {currentPage}
+      <Button
+        variant="link"
+        onClick={() => {
+          setCurrentPage(currentPage + 1);
+        }}
+      >
+        Get next {entriesPerPage} results
+      </Button>
     </div>
   );
 };
