@@ -10,8 +10,10 @@ import Container from "react-bootstrap/Container";
 
 const MoviesList = (props) => {
   const [movies, setMovies] = useState([]);
+  //keeps track of what the user has entered into search form fields
   const [searchTitle, setSearchTitle] = useState("");
   const [searchRating, setSearchRating] = useState("");
+
   const [ratings, setRatings] = useState(["All Ratings"]);
   //ch 23
   const [currentPage, setCurrentPage] = useState(0); //keep track of current page shown
@@ -145,7 +147,7 @@ const MoviesList = (props) => {
             </Col>
           </Row>
         </Form>
-
+        {/* displaying our movies */}
         <Row>
           {movies.map((movie) => {
             return (
